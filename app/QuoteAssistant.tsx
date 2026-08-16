@@ -5,7 +5,10 @@ import { useEffect, useMemo, useState, type ChangeEvent, type KeyboardEvent } fr
 const MAX_PHOTOS = 5;
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 const MAX_PHOTOS_TOTAL_SIZE = 15 * 1024 * 1024;
+const MAX_PHOTO_PIXELS = 24_000_000;
+const MAX_SHARED_PHOTO_EDGE = 4096;
 const ALLOWED_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const ALLOWED_PHOTO_EXTENSION = /\.(?:jpe?g|png|webp)$/i;
 
 type AddressSuggestion = {
   id: string;
@@ -29,6 +32,32 @@ async function hasValidImageSignature(file: File) {
   const png = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
   const webp = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
   return jpeg || png || webp;
+}
+
+async function reconstructPhoto(file: File, index: number) {
+  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  try {
+    if (!bitmap.width || !bitmap.height || bitmap.width * bitmap.height > MAX_PHOTO_PIXELS) {
+      throw new Error("Unsafe image dimensions");
+    }
+
+    const scale = Math.min(1, MAX_SHARED_PHOTO_EDGE / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const context = canvas.getContext("2d", { alpha: false });
+    if (!context) throw new Error("Image reconstruction unavailable");
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+    const safeBlob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Image reconstruction failed")), "image/jpeg", .9);
+    });
+    return new File([safeBlob], `photo-chantier-${Date.now()}-${index + 1}.jpg`, { type: "image/jpeg", lastModified: Date.now() });
+  } finally {
+    bitmap.close();
+  }
 }
 
 function regularMaintenanceSurfacePrice(surface: number) {
@@ -183,7 +212,7 @@ export default function QuoteAssistant() {
         errors.add("Vous pouvez ajouter au maximum 5 photos.");
         continue;
       }
-      if (!ALLOWED_PHOTO_TYPES.has(file.type) || !(await hasValidImageSignature(file))) {
+      if (!ALLOWED_PHOTO_TYPES.has(file.type) || !ALLOWED_PHOTO_EXTENSION.test(file.name)) {
         errors.add("Format refusé : seules les photos JPEG, PNG et WebP sont acceptées.");
         continue;
       }
@@ -191,13 +220,26 @@ export default function QuoteAssistant() {
         errors.add("Chaque photo doit faire 5 Mo maximum.");
         continue;
       }
+      if (!(await hasValidImageSignature(file))) {
+        errors.add("Format refusé : seules les photos JPEG, PNG et WebP sont acceptées.");
+        continue;
+      }
       if (totalSize + file.size > MAX_PHOTOS_TOTAL_SIZE) {
         errors.add("L’ensemble des photos est limité à 15 Mo.");
         continue;
       }
 
-      acceptedPhotos.push(file);
-      totalSize += file.size;
+      try {
+        const safePhoto = await reconstructPhoto(file, acceptedPhotos.length);
+        if (safePhoto.size > MAX_PHOTO_SIZE || totalSize + safePhoto.size > MAX_PHOTOS_TOTAL_SIZE) {
+          errors.add("La photo reconstruite dépasse la limite autorisée.");
+          continue;
+        }
+        acceptedPhotos.push(safePhoto);
+        totalSize += safePhoto.size;
+      } catch {
+        errors.add("Photo refusée : le fichier est illisible ou ses dimensions sont trop importantes.");
+      }
     }
 
     setPhotos(acceptedPhotos);
@@ -280,7 +322,7 @@ export default function QuoteAssistant() {
       <label><span>Votre nom — obligatoire</span><input required value={name} onChange={(event) => setName(event.target.value)} autoComplete="name"/></label>
       <label className="wide"><span>Précisions utiles — obligatoires</span><textarea required rows={3} value={details} onChange={(event) => setDetails(event.target.value)} placeholder="Accès, délai souhaité, éléments particuliers…"/></label>
       <div className="photo-upload wide">
-        <div className="photo-upload-heading"><div><strong>Photos du chantier — facultatif</strong><small>Jusqu’à 5 photos JPEG, PNG ou WebP · 5 Mo par photo · 15 Mo au total</small></div><label className="photo-picker">Ajouter des photos<input type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple onChange={handlePhotoSelection}/></label></div>
+        <div className="photo-upload-heading"><div><strong>Photos du chantier — facultatif</strong><small>Jusqu’à 5 photos JPEG, PNG ou WebP · 5 Mo par photo · 15 Mo au total · chaque photo est sécurisée avant le partage</small></div><label className="photo-picker">Ajouter des photos<input type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple onChange={handlePhotoSelection}/></label></div>
         {photoError && <p className="photo-error" role="alert">{photoError}</p>}
       </div>
     </div>

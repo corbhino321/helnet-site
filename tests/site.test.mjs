@@ -47,6 +47,15 @@ test("propose les adresses suisses sans clé privée", () => {
   assert.match(quoteAssistant, /limit: "8"/);
 });
 
+test("reconstruit les photos avant leur partage", () => {
+  assert.match(quoteAssistant, /ALLOWED_PHOTO_EXTENSION/);
+  assert.match(quoteAssistant, /MAX_PHOTO_PIXELS/);
+  assert.match(quoteAssistant, /createImageBitmap/);
+  assert.match(quoteAssistant, /canvas\.toBlob/);
+  assert.match(quoteAssistant, /new File\(\[safeBlob\]/);
+  assert.match(home, /chaque photo est sécurisée avant le partage/);
+});
+
 test("n’affiche aucune numérotation décorative", () => {
   assert.doesNotMatch(home, /class="service-number"/);
   assert.doesNotMatch(home, /(?:01|02|03|04)\s*·/);
@@ -68,6 +77,8 @@ test("publie les informations de confidentialité", () => {
   assert.match(privacy, /Responsable du site et du traitement/);
   assert.match(privacy, /activité indépendante en lancement/);
   assert.match(privacy, /geo\.admin\.ch/);
+  assert.match(privacy, /reconstruites directement dans votre navigateur/);
+  assert.match(privacy, /le fichier original n’est ni envoyé ni stocké/);
   assert.doesNotMatch(privacy, /n’envoie pas la commune saisie/);
 });
 
