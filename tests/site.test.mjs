@@ -7,13 +7,21 @@ const privacy = await readFile(new URL("../out/confidentialite/index.html", impo
 
 test("publie une page d’accueil orientée WhatsApp et e-mail", () => {
   assert.match(home, /Votre partenaire/);
-  assert.match(home, /Visuels de présentation/);
+  assert.doesNotMatch(home, /Visuels de présentation/);
   assert.match(home, /https:\/\/wa\.me\/41767748710/);
   assert.match(home, /mailto:contact@helnetservices\.ch/);
-  assert.match(home, /Votre demande est prête/);
-  assert.match(home, /Aucun prix automatique/);
-  assert.doesNotMatch(home, /CHF/);
+  assert.match(home, /ESTIMATION RAPIDE/);
+  assert.match(home, /Aucune donnée envoyée/);
+  assert.match(home, /Estimation indicative/);
+  assert.match(home, /Zone du chantier/);
   assert.doesNotMatch(home, /\/api\/quotes/);
+  assert.doesNotMatch(home, /nominatim\.openstreetmap\.org/);
+  assert.doesNotMatch(home, /router\.project-osrm\.org/);
+});
+
+test("n’affiche aucune numérotation décorative", () => {
+  assert.doesNotMatch(home, /class="service-number"/);
+  assert.doesNotMatch(home, /(?:01|02|03|04)\s*·/);
 });
 
 test("publie les informations de confidentialité", () => {

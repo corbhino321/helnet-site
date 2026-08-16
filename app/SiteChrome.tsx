@@ -8,8 +8,8 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
     <a className="skip-link" href="#contenu">Aller au contenu</a>
     <header className="site-header">
       <Link className="header-brand" href="/#accueil" aria-label="Helnet Services — accueil">
-        <Image src="/helnet-symbol-official.png" alt="" width={402} height={365} priority />
-        <Image className="header-wordmark" src="/helnet-wordmark-official.png" alt="Helnet Services" width={586} height={222} priority />
+        <Image src="/helnet-symbol-official.png" alt="" width={402} height={365} />
+        <Image className="header-wordmark" src="/helnet-wordmark-official.png" alt="Helnet Services" width={586} height={222} />
       </Link>
       <nav className="desktop-nav" aria-label="Navigation principale">
         <Link href="/#services">Services</Link>

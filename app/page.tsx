@@ -6,28 +6,24 @@ const whatsapp =
 
 const services = [
   {
-    number: "01",
     title: "Nettoyage professionnel",
     text: "Logements, bureaux, fins de bail, fins de chantier et remises en état soignées.",
     items: ["Nettoyage courant", "Fin de bail", "Fin de chantier", "Haute pression"],
     href: "#devis",
   },
   {
-    number: "02",
     title: "Conciergerie et immeubles",
     text: "Un suivi régulier des parties communes et de la maintenance courante.",
     items: ["Parties communes", "Contrôles réguliers", "Sorties de conteneurs", "Petite maintenance"],
     href: "#devis",
   },
   {
-    number: "03",
     title: "Espaces verts",
     text: "Entretien de jardins, tailles saisonnières, cours, terrasses et extérieurs.",
     items: ["Entretien de jardin", "Travaux de taille", "Cours et terrasses", "Évacuation"],
     href: "#devis",
   },
   {
-    number: "04",
     title: "Rénovation",
     text: "Remise en état, transformations intérieures, carrelage et travaux sur mesure.",
     items: ["Remise en état", "Démolition", "Carrelage", "Étude personnalisée"],
@@ -37,17 +33,14 @@ const services = [
 
 const methods = [
   {
-    number: "01",
     title: "Vous décrivez le besoin",
     text: "Quelques informations suffisent pour cerner la prestation, la surface, l’accès et le délai souhaité.",
   },
   {
-    number: "02",
     title: "Helnet prépare le devis",
     text: "Les informations sont vérifiées avec vous, puis complétées par des photos ou une visite si nécessaire.",
   },
   {
-    number: "03",
     title: "L’équipe intervient",
     text: "Vous gardez un interlocuteur clair avant, pendant et après l’intervention.",
   },
@@ -119,6 +112,15 @@ export default function Home() {
           </div>
         </div>
         <div className="hero-visual" role="img" aria-label="Illustration des prestations Helnet Services">
+          <Image
+            className="hero-image"
+            src="/helnet-team-cleaning.webp"
+            alt=""
+            fill
+            priority
+            fetchPriority="high"
+            sizes="(max-width: 800px) 100vw, 48vw"
+          />
           <span>Illustration de nos prestations</span>
         </div>
       </section>
@@ -147,7 +149,6 @@ export default function Home() {
         <div className="service-grid">
           {services.map((service) => (
             <article className="service-card" key={service.title}>
-              <span className="service-number">{service.number}</span>
               <h3>{service.title}</h3>
               <p>{service.text}</p>
               <ul>
@@ -164,7 +165,7 @@ export default function Home() {
       <section className="showcase" aria-label="Prestations mises en avant">
         <article>
           <Image
-            src="/helnet-pressure-washing-final-v3.webp"
+            src="/helnet-pressure-washing.webp"
             alt="Illustration du nettoyage haute pression d’une surface extérieure"
             fill
             sizes="(max-width: 800px) 100vw, 60vw"
@@ -177,7 +178,7 @@ export default function Home() {
         </article>
         <article>
           <Image
-            src="/helnet-renovation-remise-etat-final-v3.webp"
+            src="/helnet-renovation-remise-etat.webp"
             alt="Illustration d’une remise en état et rénovation intérieure"
             fill
             sizes="(max-width: 800px) 100vw, 38vw"
@@ -188,7 +189,6 @@ export default function Home() {
             <a href="#devis">Préparer la demande</a>
           </div>
         </article>
-        <p className="showcase-note">Visuels de présentation — chaque projet est validé selon le besoin réel.</p>
       </section>
 
       <section className="quote-section" id="devis">
@@ -205,8 +205,7 @@ export default function Home() {
         </div>
         <div className="method-grid">
           {methods.map((step) => (
-            <article key={step.number}>
-              <span>{step.number}</span>
+            <article key={step.title}>
               <h3>{step.title}</h3>
               <p>{step.text}</p>
             </article>

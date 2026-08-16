@@ -2,10 +2,61 @@ body {
   overflow-x: hidden;
 }
 
+.service-card h3,
+.method-grid h3 {
+  margin-top: 0;
+}
+
+.quote-promises span::before {
+  content: "✓";
+  margin-right: 9px;
+  color: #fff;
+}
+
+.header-wordmark {
+  margin-left: 8px;
+}
+
 .hero-visual {
-  background-image:
-    linear-gradient(90deg, var(--navy) 0%, rgba(7, 27, 82, 0.18) 48%, rgba(7, 27, 82, 0.05)),
-    url("/helnet-team-cleaning-final-v3.webp");
+  background: var(--navy);
+  background-image: none;
+  overflow: hidden;
+}
+
+.hero-image {
+  z-index: 0;
+  object-fit: cover;
+}
+
+.hero-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(90deg, var(--navy) 0%, rgba(7, 27, 82, 0.18) 48%, rgba(7, 27, 82, 0.05));
+  pointer-events: none;
+}
+
+.hero-visual span {
+  z-index: 2;
+}
+
+.showcase article:nth-child(2) > img {
+  object-position: 62% center;
+}
+
+@media (max-width: 960px) {
+  .showcase {
+    grid-template-columns: 1fr;
+  }
+
+  .showcase article {
+    min-height: 500px;
+  }
+
+  .showcase article:nth-child(2) > img {
+    object-position: center 35%;
+  }
 }
 
 .contact-section > *,
@@ -24,11 +75,64 @@ body {
   overflow-wrap: anywhere;
 }
 
+.distance-result {
+  min-height: 82px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 14px;
+  background: var(--ice);
+  border-left: 4px solid var(--blue);
+}
+
+.distance-result span {
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.distance-result strong {
+  color: var(--blue);
+  font: 24px var(--serif);
+}
+
+.distance-result small {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+@media (max-width: 1080px) {
+  .header-brand {
+    position: static;
+  }
+
+  .header-wordmark {
+    position: absolute;
+    left: 50%;
+    margin-left: 0;
+    transform: translateX(-50%);
+  }
+
+  .header-whatsapp {
+    margin-left: 0;
+  }
+}
+
 @media (max-width: 800px) {
+  .mobile-menu {
+    margin-left: auto;
+  }
+
   .hero-visual {
-    background-image:
-      linear-gradient(180deg, var(--navy) 0%, rgba(7, 27, 82, 0.12) 42%, rgba(7, 27, 82, 0.08)),
-      url("/helnet-team-cleaning-final-v3.webp");
+    background: var(--navy);
+    background-image: none;
+  }
+
+  .hero-visual::after {
+    background: linear-gradient(180deg, var(--navy) 0%, rgba(7, 27, 82, 0.12) 42%, rgba(7, 27, 82, 0.08));
+  }
+
+  .showcase article {
+    min-height: 420px;
   }
 
   .contact-section {

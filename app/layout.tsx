@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   applicationName: "Helnet Services",
   alternates: { canonical: "/" },
   keywords: ["Helnet Services", "nettoyage professionnel", "conciergerie", "entretien d’immeubles", "espaces verts", "rénovation", "Suisse romande", "Yens"],
-  icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
+  icons: { icon: "/favicon.png", shortcut: "/favicon.png" },
   openGraph: { title, description, url: "/", siteName: "Helnet Services", locale: "fr_CH", images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "Helnet Services" }], type: "website" },
   twitter: { card: "summary_large_image", title, description, images: ["/og.jpg"] },
 };
