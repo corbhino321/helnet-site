@@ -1,11 +1,27 @@
 "use client";
 
-import { useMemo, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent, type KeyboardEvent } from "react";
 
 const MAX_PHOTOS = 5;
 const MAX_PHOTO_SIZE = 5 * 1024 * 1024;
 const MAX_PHOTOS_TOTAL_SIZE = 15 * 1024 * 1024;
 const ALLOWED_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+type AddressSuggestion = {
+  id: string;
+  label: string;
+  kind: string;
+};
+
+function cleanAddressLabel(label: string) {
+  return label
+    .replace(/<[^>]*>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, "\"")
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ")
+    .trim();
+}
 
 async function hasValidImageSignature(file: File) {
   const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
@@ -54,6 +70,11 @@ export default function QuoteAssistant() {
   const [condition, setCondition] = useState("normal");
   const [frequency, setFrequency] = useState("weekly");
   const [locality, setLocality] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressSuggestion[]>([]);
+  const [addressSearchStatus, setAddressSearchStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [activeAddressIndex, setActiveAddressIndex] = useState(-1);
+  const [addressConfirmed, setAddressConfirmed] = useState(false);
   const [travelZone, setTravelZone] = useState<TravelZone | "">("");
   const [name, setName] = useState("");
   const [details, setDetails] = useState("");
@@ -77,6 +98,77 @@ export default function QuoteAssistant() {
   const distance = selectedZone?.distance ?? null;
   const serviceLabel = services[service] ?? services.lease;
   const requestDetailsComplete = Boolean(locality.trim() && name.trim() && details.trim());
+
+  useEffect(() => {
+    const query = locality.trim();
+    if (query.length < 2 || addressConfirmed) return;
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setAddressSearchStatus("loading");
+      try {
+        const parameters = new URLSearchParams({
+          searchText: query,
+          origins: "address,zipcode,gg25",
+          type: "locations",
+          lang: "fr",
+          limit: "8",
+          returnGeometry: "false",
+        });
+        const response = await fetch(`https://api3.geo.admin.ch/rest/services/api/SearchServer?${parameters}`, { signal: controller.signal });
+        if (!response.ok) throw new Error("Address search unavailable");
+        const data = await response.json() as { results?: Array<{ id?: string | number; attrs?: { label?: string; origin?: string } }> };
+        const originLabels: Record<string, string> = { address: "Adresse", zipcode: "Localité / NPA", gg25: "Commune" };
+        const uniqueSuggestions = new Map<string, AddressSuggestion>();
+        for (const result of data.results ?? []) {
+          const label = cleanAddressLabel(result.attrs?.label ?? "");
+          if (!label || uniqueSuggestions.has(label)) continue;
+          uniqueSuggestions.set(label, {
+            id: String(result.id ?? label),
+            label,
+            kind: originLabels[result.attrs?.origin ?? ""] ?? "Localité",
+          });
+        }
+        setAddressSuggestions(Array.from(uniqueSuggestions.values()).slice(0, 8));
+        setActiveAddressIndex(-1);
+        setAddressSearchStatus("ready");
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setAddressSuggestions([]);
+        setAddressSearchStatus("error");
+      }
+    }, 300);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [addressConfirmed, locality]);
+
+  const chooseAddress = (suggestion: AddressSuggestion) => {
+    setLocality(suggestion.label);
+    setAddressConfirmed(true);
+    setAddressSuggestions([]);
+    setShowAddressSuggestions(false);
+    setActiveAddressIndex(-1);
+  };
+
+  const handleAddressKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (!showAddressSuggestions || !addressSuggestions.length) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveAddressIndex((current) => Math.min(current + 1, addressSuggestions.length - 1));
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveAddressIndex((current) => Math.max(current - 1, 0));
+    } else if (event.key === "Enter" && activeAddressIndex >= 0) {
+      event.preventDefault();
+      chooseAddress(addressSuggestions[activeAddressIndex]);
+    } else if (event.key === "Escape") {
+      setShowAddressSuggestions(false);
+      setActiveAddressIndex(-1);
+    }
+  };
 
   const handlePhotoSelection = async (event: ChangeEvent<HTMLInputElement>) => {
     const incomingFiles = Array.from(event.currentTarget.files ?? []);
@@ -145,7 +237,7 @@ export default function QuoteAssistant() {
     selectedZone ? "Zone du chantier : " + selectedZone.label : "",
     distance !== null ? "Distance indicative depuis Yens : " + distance + " km" : "",
     estimate !== null ? (recurring ? "Estimation mensuelle indicative : CHF " + estimate + " / mois" : "Estimation indicative : CHF " + estimate) : "",
-    locality ? "Commune : " + locality : "", name ? "Nom : " + name : "", details ? "Précisions : " + details : "",
+    locality ? "Commune ou adresse : " + locality : "", name ? "Nom : " + name : "", details ? "Précisions : " + details : "",
     photos.length ? "Photos sélectionnées : " + photos.length + " (jointes lors du partage)" : "",
   ].filter(Boolean).join("\n"), [antiMoss, bayWindowCount, cleaning, condition, details, distance, doorWindowCount, estimate, frequency, locality, name, photos.length, pressureCleaning, pruning, quantity, recurring, selectedZone, serviceLabel, standardWindowCount, surfacePricedService, waterRepellent, windows]);
 
@@ -169,7 +261,7 @@ export default function QuoteAssistant() {
     <div className="quote-copy">
       <p className="eyebrow light">ESTIMATION RAPIDE</p><h2>Obtenez une estimation en moins d’une minute.</h2>
       <p>Choisissez la prestation, indiquez la surface et la zone du chantier : une estimation indicative se prépare immédiatement.</p>
-      <div className="quote-promises"><span>Aucune donnée envoyée</span><span>Estimation immédiate</span><span>Prix final confirmé avant intervention</span></div>
+      <div className="quote-promises"><span>Aucune donnée enregistrée par Helnet</span><span>Estimation immédiate</span><span>Prix final confirmé avant intervention</span></div>
     </div>
     <div className="quote-panel"><div className="form-grid">
       <label><span>Prestation souhaitée</span><select value={service} onChange={(event) => { setService(event.target.value as Service); setWindows(false); setAntiMoss(false); setWaterRepellent(false); }}>{Object.entries(services).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
@@ -182,7 +274,7 @@ export default function QuoteAssistant() {
       {cleaning && <label className="quote-option wide"><input type="checkbox" checked={windows} onChange={(event) => setWindows(event.target.checked)}/><span>{recurring ? "Nettoyage des vitres une fois par mois" : "Nettoyage des vitres"} — tarif automatique selon le type</span></label>}
       {cleaning && windows && <div className="window-count-grid wide"><label><span>Fenêtres standard — 15 CHF</span><div className="input-unit"><input type="number" min="0" max="100" value={standardWindowCount} onChange={(event) => setStandardWindowCount(Math.min(100, Math.max(0, Number(event.target.value) || 0)))}/><b>unités</b></div></label><label><span>Portes-fenêtres — 30 CHF</span><div className="input-unit"><input type="number" min="0" max="100" value={doorWindowCount} onChange={(event) => setDoorWindowCount(Math.min(100, Math.max(0, Number(event.target.value) || 0)))}/><b>unités</b></div></label><label><span>Grandes baies vitrées — 45 CHF</span><div className="input-unit"><input type="number" min="0" max="100" value={bayWindowCount} onChange={(event) => setBayWindowCount(Math.min(100, Math.max(0, Number(event.target.value) || 0)))}/><b>unités</b></div></label><small className="field-help">Les accès difficiles restent confirmés avant l’intervention.</small></div>}
       {pressureCleaning && <label className="quote-option"><input type="checkbox" checked={waterRepellent} onChange={(event) => setWaterRepellent(event.target.checked)}/><span>Protection hydrofuge — supplément de 8 CHF/m²</span></label>}
-      <label><span>Commune — obligatoire</span><input required value={locality} onChange={(event) => setLocality(event.target.value)} placeholder="Ex. Morges" autoComplete="address-level2"/></label>
+      <div className="address-field"><label htmlFor="quote-locality"><span>Commune ou adresse — obligatoire</span><input id="quote-locality" required role="combobox" aria-autocomplete="list" aria-expanded={showAddressSuggestions && addressSearchStatus !== "idle"} aria-controls={addressSuggestions.length > 0 ? "address-suggestions" : undefined} aria-activedescendant={activeAddressIndex >= 0 ? `address-suggestion-${activeAddressIndex}` : undefined} value={locality} onChange={(event) => { const nextLocality = event.target.value; setLocality(nextLocality); setAddressConfirmed(false); setShowAddressSuggestions(true); setAddressSuggestions([]); setActiveAddressIndex(-1); setAddressSearchStatus(nextLocality.trim().length >= 2 ? "loading" : "idle"); }} onFocus={() => setShowAddressSuggestions(true)} onBlur={() => window.setTimeout(() => setShowAddressSuggestions(false), 120)} onKeyDown={handleAddressKeyDown} placeholder="Commune, rue ou code postal" autoComplete="street-address"/></label>{showAddressSuggestions && locality.trim().length >= 2 && <div className="address-suggestions">{addressSearchStatus === "loading" && <p role="status">Recherche des adresses suisses…</p>}{addressSearchStatus === "error" && <p role="status">Suggestions indisponibles. Vous pouvez continuer à saisir l’adresse.</p>}{addressSearchStatus === "ready" && addressSuggestions.length === 0 && <p role="status">Aucune adresse trouvée. Vous pouvez continuer à saisir.</p>}{addressSuggestions.length > 0 && <ul id="address-suggestions" role="listbox" aria-label="Adresses suisses proposées">{addressSuggestions.map((suggestion, index) => <li key={`${suggestion.id}-${suggestion.label}`}><button id={`address-suggestion-${index}`} type="button" role="option" aria-selected={index === activeAddressIndex} className={index === activeAddressIndex ? "active" : undefined} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseAddress(suggestion)}><span>{suggestion.label}</span><small>{suggestion.kind}</small></button></li>)}</ul>}</div>}</div>
       <label><span>Zone du chantier</span><select value={travelZone} onChange={(event) => setTravelZone(event.target.value as TravelZone | "")}><option value="">Choisir une zone</option>{Object.entries(travelZones).map(([value, zone]) => <option key={value} value={value}>{zone.label}</option>)}</select></label>
       <div className="distance-result wide" aria-live="polite"><span>Déplacement estimé depuis Yens</span><strong>{distance === null ? "Zone à choisir" : "Environ " + distance + " km"}</strong><small>{selectedZone ? selectedZone.label : "Cette indication sert uniquement à préparer l’estimation."}</small></div>
       <label><span>Votre nom — obligatoire</span><input required value={name} onChange={(event) => setName(event.target.value)} autoComplete="name"/></label>
@@ -193,10 +285,10 @@ export default function QuoteAssistant() {
       </div>
     </div>
     <div className="estimate-box" aria-live="polite"><p>{recurring ? "Estimation mensuelle indicative" : "Estimation indicative"}</p><strong>{estimate === null ? "Choisissez la zone du chantier" : "CHF " + estimate + (recurring ? " par mois" : "")}</strong><small>{recurring ? "Pour l’entretien régulier, le montant correspond à un mois selon la fréquence choisie. " : ""}{surfacePricedService ? "Le tarif au m² diminue progressivement pour les grandes surfaces. " : ""}Montant non contractuel, hors fournitures et travaux imprévus. Le prix final est toujours confirmé par un devis Helnet.</small></div>
-    {!requestDetailsComplete && <p className="required-note">Renseignez la commune, votre nom et les précisions pour activer l’envoi.</p>}
+    {!requestDetailsComplete && <p className="required-note">Renseignez la commune ou l’adresse, votre nom et les précisions pour activer l’envoi.</p>}
     {photos.length > 0 && <div className="photo-share-panel"><button className="button photo-share" type="button" onClick={shareRequestWithPhotos} disabled={!requestDetailsComplete}>Partager la demande avec les photos</button><small>Sur téléphone, choisissez WhatsApp dans le menu de partage pour joindre les photos.</small>{shareStatus && <p role="status">{shareStatus}</p>}</div>}
     <div className="quote-actions"><a className="button whatsapp" href={requestDetailsComplete ? "https://wa.me/41767748710?text=" + encodeURIComponent(message) : undefined} aria-disabled={!requestDetailsComplete} tabIndex={requestDetailsComplete ? undefined : -1} target="_blank" rel="noreferrer">Envoyer sur WhatsApp</a><a className="button email" href={requestDetailsComplete ? "mailto:contact@helnetservices.ch?subject=" + encodeURIComponent("Demande de devis — " + serviceLabel) + "&body=" + encodeURIComponent(message) : undefined} aria-disabled={!requestDetailsComplete} tabIndex={requestDetailsComplete ? undefined : -1}>Envoyer par e-mail</a></div>
-    <p className="privacy-note">Vos informations et vos photos restent sur votre appareil jusqu’à l’ouverture du partage, de WhatsApp ou de votre messagerie. Le site ne stocke aucun fichier. <a href="/confidentialite/">En savoir plus</a>.</p>
+    <p className="privacy-note">Lors de la recherche d’adresse, le texte saisi est transmis au service cartographique officiel de la Confédération pour afficher les suggestions. Helnet ne le stocke pas. Vos autres informations et vos photos restent sur votre appareil jusqu’à l’ouverture du partage, de WhatsApp ou de votre messagerie. Le site ne stocke aucun fichier. <a href="/confidentialite/">En savoir plus</a>.</p>
     </div>
   </div>;
 }

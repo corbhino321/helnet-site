@@ -14,12 +14,12 @@ test("publie une page d’accueil orientée WhatsApp et e-mail", () => {
   assert.match(home, /ESTIMATION RAPIDE/);
   assert.match(home, /Tonte de gazon/);
   assert.match(home, /Nettoyage du jardin/);
-  assert.match(home, /Aucune donnée envoyée/);
+  assert.match(home, /Aucune donnée enregistrée par Helnet/);
   assert.match(home, /Estimation indicative/);
   assert.match(home, /Zone du chantier/);
   assert.match(home, /Choisir une zone/);
   assert.doesNotMatch(home, /Choisir la zone la plus proche/);
-  assert.match(home, /Commune — obligatoire/);
+  assert.match(home, /Commune ou adresse — obligatoire/);
   assert.match(home, /Votre nom — obligatoire/);
   assert.match(home, /Précisions utiles — obligatoires/);
   assert.doesNotMatch(home, /Votre nom — facultatif/);
@@ -27,6 +27,7 @@ test("publie une page d’accueil orientée WhatsApp et e-mail", () => {
   assert.match(home, /Photos du chantier — facultatif/);
   assert.match(home, /JPEG, PNG ou WebP/);
   assert.match(home, /Le site ne stocke aucun fichier/);
+  assert.match(home, /service cartographique officiel de la Confédération/);
   assert.match(home, /Nyon ou Genève/);
   assert.match(home, /Vevey ou Montreux/);
   assert.doesNotMatch(home, /Nyon, Genève, Vevey ou Montreux/);
@@ -36,6 +37,14 @@ test("publie une page d’accueil orientée WhatsApp et e-mail", () => {
   assert.doesNotMatch(home, /\/api\/quotes/);
   assert.doesNotMatch(home, /nominatim\.openstreetmap\.org/);
   assert.doesNotMatch(home, /router\.project-osrm\.org/);
+});
+
+test("propose les adresses suisses sans clé privée", () => {
+  assert.match(quoteAssistant, /https:\/\/api3\.geo\.admin\.ch\/rest\/services\/api\/SearchServer/);
+  assert.match(quoteAssistant, /origins: "address,zipcode,gg25"/);
+  assert.match(quoteAssistant, /role="combobox"/);
+  assert.match(quoteAssistant, /role="listbox"/);
+  assert.match(quoteAssistant, /limit: "8"/);
 });
 
 test("n’affiche aucune numérotation décorative", () => {
@@ -58,6 +67,8 @@ test("publie les informations de confidentialité", () => {
   assert.match(privacy, /Vos informations restent sous votre contrôle/);
   assert.match(privacy, /Responsable du site et du traitement/);
   assert.match(privacy, /activité indépendante en lancement/);
+  assert.match(privacy, /geo\.admin\.ch/);
+  assert.doesNotMatch(privacy, /n’envoie pas la commune saisie/);
 });
 
 test("prépare le domaine personnalisé", async () => {
