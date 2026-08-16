@@ -138,7 +138,7 @@ export default function Home() {
         <div className="section-heading">
           <div>
             <p className="eyebrow blue">NOS SERVICES</p>
-            <h2>Des savoir-faire complémentaires. Une seule exigence.</h2>
+            <h2>Des savoir-faire complémentaires, une seule exigence.</h2>
           </div>
           <p>
             Helnet Services coordonne l’entretien quotidien et les interventions ponctuelles pour simplifier la gestion
