@@ -140,6 +140,15 @@ body {
     margin-left: auto;
   }
 
+  .services .section-heading h2 {
+    font-size: clamp(32px, 9.4vw, 38px);
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+  }
+
   .hero-visual {
     background: var(--navy);
     background-image: none;
