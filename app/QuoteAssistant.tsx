@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 const services = {
   regular: "Entretien régulier / conciergerie", deep: "Nettoyage approfondi", lease: "Nettoyage de fin de bail", construction: "Nettoyage de fin de chantier",
   "pressure-ground": "Haute pression — terrasse ou dallage", "pressure-facade": "Haute pression — façade", "garden-care": "Entretien d’espaces verts",
-  pruning: "Travaux de taille", "terrace-installation": "Pose de terrasse", renovation: "Rénovation / remise en état",
+  pruning: "Travaux de taille",
 } as const;
 type Service = keyof typeof services;
 const travelZones = {
@@ -19,7 +19,7 @@ type TravelZone = keyof typeof travelZones;
 const tariffs: Record<Service, [number, number, number]> = {
   regular: [110, 1.5, 150], deep: [150, 5.8, 350], lease: [180, 12.5, 750], construction: [200, 9.5, 550],
   "pressure-ground": [200, 9.5, 350], "pressure-facade": [300, 14, 800], "garden-care": [100, 1.4, 160],
-  pruning: [180, 8, 250], "terrace-installation": [500, 190, 2000], renovation: [400, 700, 2500],
+  pruning: [180, 8, 250],
 };
 
 export default function QuoteAssistant() {
@@ -35,10 +35,13 @@ export default function QuoteAssistant() {
   const pruning = service === "pruning";
   const selectedZone = travelZone ? travelZones[travelZone] : null;
   const distance = selectedZone?.distance ?? null;
+  const serviceLabel = services[service] ?? services.lease;
 
   const estimate = useMemo(() => {
     if (distance === null) return null;
-    const [base, perUnit, minimum] = tariffs[service];
+    const tariff = tariffs[service];
+    if (!tariff) return null;
+    const [base, perUnit, minimum] = tariff;
     const conditionFactor = condition === "light" ? .9 : condition === "heavy" ? 1.3 : 1;
     const frequencyFactor = recurring && frequency === "monthly" ? 1.08 : recurring && frequency === "twice" ? .92 : 1;
     const work = Math.max(minimum, base + quantity * perUnit) * conditionFactor * frequencyFactor;
@@ -47,7 +50,7 @@ export default function QuoteAssistant() {
 
   const message = useMemo(() => [
     "Bonjour Helnet Services, je souhaite recevoir un devis.",
-    "Prestation : " + services[service],
+    "Prestation : " + serviceLabel,
     (pruning ? "Longueur approximative : " : "Surface approximative : ") + quantity + (pruning ? " m" : " m²"),
     "État / complexité : " + (condition === "light" ? "simple" : condition === "heavy" ? "important / accès difficile" : "normal"),
     recurring ? "Fréquence : " + (frequency === "monthly" ? "mensuelle" : frequency === "twice" ? "deux fois par semaine" : "hebdomadaire") : "",
@@ -55,7 +58,7 @@ export default function QuoteAssistant() {
     distance !== null ? "Distance indicative depuis Yens : " + distance + " km" : "",
     estimate !== null ? "Estimation indicative : CHF " + estimate : "",
     locality ? "Commune : " + locality : "", name ? "Nom : " + name : "", details ? "Précisions : " + details : "",
-  ].filter(Boolean).join("\n"), [condition, details, distance, estimate, frequency, locality, name, pruning, quantity, recurring, selectedZone, service]);
+  ].filter(Boolean).join("\n"), [condition, details, distance, estimate, frequency, locality, name, pruning, quantity, recurring, selectedZone, serviceLabel]);
 
   return <div className="quote-shell">
     <div className="quote-copy">
@@ -75,7 +78,7 @@ export default function QuoteAssistant() {
       <label className="wide"><span>Précisions utiles — facultatif</span><textarea rows={3} value={details} onChange={(event) => setDetails(event.target.value)} placeholder="Accès, délai souhaité, éléments particuliers…"/></label>
     </div>
     <div className="estimate-box" aria-live="polite"><p>Estimation indicative</p><strong>{estimate === null ? "Choisissez la zone du chantier" : "CHF " + estimate + (recurring ? " par intervention" : "")}</strong><small>Montant non contractuel, hors fournitures et travaux imprévus. Le prix final est toujours confirmé par un devis Helnet.</small></div>
-    <div className="quote-actions"><a className="button whatsapp" href={"https://wa.me/41767748710?text=" + encodeURIComponent(message)} target="_blank" rel="noreferrer">Envoyer sur WhatsApp</a><a className="button email" href={"mailto:contact@helnetservices.ch?subject=" + encodeURIComponent("Demande de devis — " + services[service]) + "&body=" + encodeURIComponent(message)}>Envoyer par e-mail</a></div>
+    <div className="quote-actions"><a className="button whatsapp" href={"https://wa.me/41767748710?text=" + encodeURIComponent(message)} target="_blank" rel="noreferrer">Envoyer sur WhatsApp</a><a className="button email" href={"mailto:contact@helnetservices.ch?subject=" + encodeURIComponent("Demande de devis — " + serviceLabel) + "&body=" + encodeURIComponent(message)}>Envoyer par e-mail</a></div>
     <p className="privacy-note">Vos informations restent dans votre navigateur jusqu’à l’ouverture de WhatsApp ou de votre messagerie. <a href="/confidentialite/">En savoir plus</a>.</p>
     </div>
   </div>;

@@ -1,9 +1,24 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRef, type MouseEvent } from "react";
 
 const whatsapp = "https://wa.me/41767748710?text=Bonjour%20Helnet%20Services%2C%20j%E2%80%99aimerais%20vous%20parler%20d%E2%80%99un%20projet.";
 
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
+  const mobileMenuRef = useRef<HTMLDetailsElement>(null);
+  const navigateFromMobileMenu = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (mobileMenuRef.current) mobileMenuRef.current.open = false;
+
+    if (window.location.pathname !== "/") return;
+
+    event.preventDefault();
+    const targetId = event.currentTarget.hash.slice(1);
+    window.history.pushState(null, "", `#${targetId}`);
+    document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return <>
     <a className="skip-link" href="#contenu">Aller au contenu</a>
     <header className="site-header">
@@ -20,10 +35,10 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
       <a className="header-whatsapp" href={whatsapp} target="_blank" rel="noreferrer" aria-label="Contacter Helnet Services sur WhatsApp">
         <span>WhatsApp</span><strong>076 774 87 10</strong>
       </a>
-      <details className="mobile-menu">
+      <details className="mobile-menu" ref={mobileMenuRef}>
         <summary aria-label="Ouvrir le menu">Menu</summary>
         <nav aria-label="Navigation mobile">
-          <Link href="/#services">Services</Link><Link href="/#devis">Devis</Link><Link href="/#faq">Questions</Link><Link href="/#contact">Contact</Link>
+          <Link href="/#services" onClick={navigateFromMobileMenu}>Services</Link><Link href="/#devis" onClick={navigateFromMobileMenu}>Devis en ligne</Link><Link href="/#contact" onClick={navigateFromMobileMenu}>Contact rénovation</Link><Link href="/#faq" onClick={navigateFromMobileMenu}>Questions</Link><Link href="/#contact" onClick={navigateFromMobileMenu}>Contact</Link>
         </nav>
       </details>
     </header>

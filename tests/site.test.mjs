@@ -14,6 +14,9 @@ test("publie une page d’accueil orientée WhatsApp et e-mail", () => {
   assert.match(home, /Aucune donnée envoyée/);
   assert.match(home, /Estimation indicative/);
   assert.match(home, /Zone du chantier/);
+  assert.match(home, /class="button whatsapp" href="#devis">Demander un devis/);
+  assert.doesNotMatch(home, /Rénovation \/ remise en état/);
+  assert.doesNotMatch(home, /Pose de terrasse/);
   assert.doesNotMatch(home, /\/api\/quotes/);
   assert.doesNotMatch(home, /nominatim\.openstreetmap\.org/);
   assert.doesNotMatch(home, /router\.project-osrm\.org/);

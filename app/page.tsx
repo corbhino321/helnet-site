@@ -27,7 +27,7 @@ const services = [
     title: "Rénovation",
     text: "Remise en état, transformations intérieures, carrelage et travaux sur mesure.",
     items: ["Remise en état", "Démolition", "Carrelage", "Étude personnalisée"],
-    href: "#devis",
+    href: "#contact",
   },
 ];
 
@@ -98,7 +98,7 @@ export default function Home() {
             fiable et soignée.
           </p>
           <div className="hero-actions">
-            <a className="button whatsapp" href={whatsapp} target="_blank" rel="noreferrer">
+            <a className="button whatsapp" href="#devis">
               Demander un devis
             </a>
             <a className="button outline" href="#services">
@@ -114,14 +114,13 @@ export default function Home() {
         <div className="hero-visual" role="img" aria-label="Illustration des prestations Helnet Services">
           <Image
             className="hero-image"
-            src="/helnet-team-cleaning.webp"
+            src="/helnet-team-cleaning-woman-retouched.png"
             alt=""
             fill
             priority
             fetchPriority="high"
             sizes="(max-width: 800px) 100vw, 48vw"
           />
-          <span>Illustration de nos prestations</span>
         </div>
       </section>
 
@@ -156,7 +155,7 @@ export default function Home() {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-              <a href={service.href}>Préparer ma demande</a>
+              <a href={service.href}>{service.title === "Rénovation" ? "Nous contacter" : "Préparer ma demande"}</a>
             </article>
           ))}
         </div>
@@ -178,7 +177,7 @@ export default function Home() {
         </article>
         <article>
           <Image
-            src="/helnet-renovation-remise-etat.webp"
+            src="/helnet-renovation-remise-etat-v4.png"
             alt="Illustration d’une remise en état et rénovation intérieure"
             fill
             sizes="(max-width: 800px) 100vw, 38vw"
@@ -186,7 +185,7 @@ export default function Home() {
           <div>
             <p>RÉNOVATION</p>
             <h2>Remettre en état, améliorer et valoriser durablement.</h2>
-            <a href="#devis">Préparer la demande</a>
+            <a href="#contact">Nous contacter</a>
           </div>
         </article>
       </section>

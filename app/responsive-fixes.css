@@ -2,6 +2,16 @@ body {
   overflow-x: hidden;
 }
 
+.desktop-nav,
+.header-whatsapp {
+  display: none;
+}
+
+.mobile-menu {
+  display: block;
+  margin-left: auto;
+}
+
 .service-card h3,
 .method-grid h3 {
   margin-top: 0;
@@ -41,8 +51,12 @@ body {
   z-index: 2;
 }
 
+.showcase article:first-child > img {
+  object-position: 12% center;
+}
+
 .showcase article:nth-child(2) > img {
-  object-position: 62% center;
+  object-position: 10% center;
 }
 
 @media (max-width: 960px) {
@@ -54,8 +68,12 @@ body {
     min-height: 500px;
   }
 
+  .showcase article:first-child > img {
+    object-position: 10% center;
+  }
+
   .showcase article:nth-child(2) > img {
-    object-position: center 35%;
+    object-position: 10% center;
   }
 }
 
@@ -133,6 +151,14 @@ body {
 
   .showcase article {
     min-height: 420px;
+  }
+
+  .showcase article:first-child > img {
+    object-position: 8% center;
+  }
+
+  .showcase article:nth-child(2) > img {
+    object-position: 9% center;
   }
 
   .contact-section {
