@@ -93,6 +93,29 @@ body {
   overflow-wrap: anywhere;
 }
 
+.form-grid .quote-option {
+  grid-template-columns: 20px 1fr;
+  align-items: center;
+  gap: 11px;
+  padding: 14px;
+  border: 1px solid #cad6eb;
+  background: #f8faff;
+  cursor: pointer;
+}
+
+.form-grid .quote-option input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--blue);
+}
+
+.form-grid .quote-option span {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .distance-result {
   min-height: 82px;
   display: grid;

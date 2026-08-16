@@ -31,8 +31,13 @@ export default function QuoteAssistant() {
   const [travelZone, setTravelZone] = useState<TravelZone | "">("");
   const [name, setName] = useState("");
   const [details, setDetails] = useState("");
+  const [windows, setWindows] = useState(false);
+  const [antiMoss, setAntiMoss] = useState(false);
+  const [waterRepellent, setWaterRepellent] = useState(false);
   const recurring = service === "regular";
   const pruning = service === "pruning";
+  const cleaning = ["regular", "deep", "lease", "construction"].includes(service);
+  const terraceCleaning = service === "pressure-ground";
   const selectedZone = travelZone ? travelZones[travelZone] : null;
   const distance = selectedZone?.distance ?? null;
   const serviceLabel = services[service] ?? services.lease;
@@ -46,9 +51,11 @@ export default function QuoteAssistant() {
     const frequencyFactor = recurring && frequency === "monthly" ? 1.08 : recurring && frequency === "twice" ? .92 : 1;
     const visitsPerMonth = frequency === "monthly" ? 1 : frequency === "twice" ? 8 : 4;
     const visit = Math.max(minimum, base + quantity * perUnit) * conditionFactor + distance * 2;
-    const total = recurring ? visit * visitsPerMonth * frequencyFactor : visit;
+    const windowsSupplement = cleaning && windows ? Math.max(60, quantity * .75) : 0;
+    const terraceProductsSupplement = terraceCleaning ? quantity * ((antiMoss ? 4 : 0) + (waterRepellent ? 8 : 0)) : 0;
+    const total = (recurring ? visit * visitsPerMonth * frequencyFactor : visit) + windowsSupplement + terraceProductsSupplement;
     return Math.round(total / 10) * 10;
-  }, [condition, distance, frequency, quantity, recurring, service]);
+  }, [antiMoss, cleaning, condition, distance, frequency, quantity, recurring, service, terraceCleaning, waterRepellent, windows]);
 
   const message = useMemo(() => [
     "Bonjour Helnet Services, je souhaite recevoir un devis.",
@@ -56,11 +63,14 @@ export default function QuoteAssistant() {
     (pruning ? "Longueur approximative : " : "Surface approximative : ") + quantity + (pruning ? " m" : " m²"),
     "État / complexité : " + (condition === "light" ? "simple" : condition === "heavy" ? "important / accès difficile" : "normal"),
     recurring ? "Fréquence : " + (frequency === "monthly" ? "mensuelle" : frequency === "twice" ? "deux fois par semaine" : "hebdomadaire") : "",
+    cleaning && windows ? "Prestation supplémentaire : nettoyage des vitres" + (recurring ? " une fois par mois" : "") : "",
+    terraceCleaning && antiMoss ? "Prestation supplémentaire : traitement anti-mousse" : "",
+    terraceCleaning && waterRepellent ? "Prestation supplémentaire : protection hydrofuge" : "",
     selectedZone ? "Zone du chantier : " + selectedZone.label : "",
     distance !== null ? "Distance indicative depuis Yens : " + distance + " km" : "",
     estimate !== null ? (recurring ? "Estimation mensuelle indicative : CHF " + estimate + " / mois" : "Estimation indicative : CHF " + estimate) : "",
     locality ? "Commune : " + locality : "", name ? "Nom : " + name : "", details ? "Précisions : " + details : "",
-  ].filter(Boolean).join("\n"), [condition, details, distance, estimate, frequency, locality, name, pruning, quantity, recurring, selectedZone, serviceLabel]);
+  ].filter(Boolean).join("\n"), [antiMoss, cleaning, condition, details, distance, estimate, frequency, locality, name, pruning, quantity, recurring, selectedZone, serviceLabel, terraceCleaning, waterRepellent, windows]);
 
   return <div className="quote-shell">
     <div className="quote-copy">
@@ -69,10 +79,12 @@ export default function QuoteAssistant() {
       <div className="quote-promises"><span>Aucune donnée envoyée</span><span>Estimation immédiate</span><span>Prix final confirmé avant intervention</span></div>
     </div>
     <div className="quote-panel"><div className="form-grid">
-      <label><span>Prestation souhaitée</span><select value={service} onChange={(event) => setService(event.target.value as Service)}>{Object.entries(services).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label><span>Prestation souhaitée</span><select value={service} onChange={(event) => { setService(event.target.value as Service); setWindows(false); setAntiMoss(false); setWaterRepellent(false); }}>{Object.entries(services).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
       <label><span>{pruning ? "Longueur approximative" : "Surface approximative"}</span><div className="input-unit"><input type="number" min="1" max="5000" value={quantity} onChange={(event) => setQuantity(Math.max(1, Number(event.target.value) || 1))}/><b>{pruning ? "m" : "m²"}</b></div></label>
       <label><span>État / complexité</span><select value={condition} onChange={(event) => setCondition(event.target.value)}><option value="light">Simple</option><option value="normal">Normal</option><option value="heavy">Important / accès difficile</option></select></label>
       {recurring && <label><span>Fréquence</span><select value={frequency} onChange={(event) => setFrequency(event.target.value)}><option value="monthly">Une fois par mois</option><option value="weekly">Une fois par semaine</option><option value="twice">Deux fois par semaine</option></select></label>}
+      {cleaning && <label className="quote-option wide"><input type="checkbox" checked={windows} onChange={(event) => setWindows(event.target.checked)}/><span>{recurring ? "Nettoyage des vitres une fois par mois" : "Nettoyage des vitres"} — supplément calculé selon la surface, minimum 60 CHF</span></label>}
+      {terraceCleaning && <><label className="quote-option"><input type="checkbox" checked={antiMoss} onChange={(event) => setAntiMoss(event.target.checked)}/><span>Traitement anti-mousse — supplément de 4 CHF/m²</span></label><label className="quote-option"><input type="checkbox" checked={waterRepellent} onChange={(event) => setWaterRepellent(event.target.checked)}/><span>Protection hydrofuge — supplément de 8 CHF/m²</span></label></>}
       <label><span>Commune</span><input value={locality} onChange={(event) => setLocality(event.target.value)} placeholder="Ex. Morges" autoComplete="address-level2"/></label>
       <label><span>Zone du chantier</span><select value={travelZone} onChange={(event) => setTravelZone(event.target.value as TravelZone | "")}><option value="">Choisir la zone la plus proche</option>{Object.entries(travelZones).map(([value, zone]) => <option key={value} value={value}>{zone.label}</option>)}</select></label>
       <div className="distance-result wide" aria-live="polite"><span>Déplacement estimé depuis Yens</span><strong>{distance === null ? "Zone à choisir" : "Environ " + distance + " km"}</strong><small>{selectedZone ? selectedZone.label : "Cette indication sert uniquement à préparer l’estimation."}</small></div>
