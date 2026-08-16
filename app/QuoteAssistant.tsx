@@ -44,8 +44,10 @@ export default function QuoteAssistant() {
     const [base, perUnit, minimum] = tariff;
     const conditionFactor = condition === "light" ? .9 : condition === "heavy" ? 1.3 : 1;
     const frequencyFactor = recurring && frequency === "monthly" ? 1.08 : recurring && frequency === "twice" ? .92 : 1;
-    const work = Math.max(minimum, base + quantity * perUnit) * conditionFactor * frequencyFactor;
-    return Math.round((work + distance * 2) / 10) * 10;
+    const visitsPerMonth = frequency === "monthly" ? 1 : frequency === "twice" ? 8 : 4;
+    const visit = Math.max(minimum, base + quantity * perUnit) * conditionFactor + distance * 2;
+    const total = recurring ? visit * visitsPerMonth * frequencyFactor : visit;
+    return Math.round(total / 10) * 10;
   }, [condition, distance, frequency, quantity, recurring, service]);
 
   const message = useMemo(() => [
@@ -56,7 +58,7 @@ export default function QuoteAssistant() {
     recurring ? "Fréquence : " + (frequency === "monthly" ? "mensuelle" : frequency === "twice" ? "deux fois par semaine" : "hebdomadaire") : "",
     selectedZone ? "Zone du chantier : " + selectedZone.label : "",
     distance !== null ? "Distance indicative depuis Yens : " + distance + " km" : "",
-    estimate !== null ? "Estimation indicative : CHF " + estimate : "",
+    estimate !== null ? (recurring ? "Estimation mensuelle indicative : CHF " + estimate + " / mois" : "Estimation indicative : CHF " + estimate) : "",
     locality ? "Commune : " + locality : "", name ? "Nom : " + name : "", details ? "Précisions : " + details : "",
   ].filter(Boolean).join("\n"), [condition, details, distance, estimate, frequency, locality, name, pruning, quantity, recurring, selectedZone, serviceLabel]);
 
@@ -77,7 +79,7 @@ export default function QuoteAssistant() {
       <label><span>Votre nom — facultatif</span><input value={name} onChange={(event) => setName(event.target.value)} autoComplete="name"/></label>
       <label className="wide"><span>Précisions utiles — facultatif</span><textarea rows={3} value={details} onChange={(event) => setDetails(event.target.value)} placeholder="Accès, délai souhaité, éléments particuliers…"/></label>
     </div>
-    <div className="estimate-box" aria-live="polite"><p>Estimation indicative</p><strong>{estimate === null ? "Choisissez la zone du chantier" : "CHF " + estimate + (recurring ? " par intervention" : "")}</strong><small>Montant non contractuel, hors fournitures et travaux imprévus. Le prix final est toujours confirmé par un devis Helnet.</small></div>
+    <div className="estimate-box" aria-live="polite"><p>{recurring ? "Estimation mensuelle indicative" : "Estimation indicative"}</p><strong>{estimate === null ? "Choisissez la zone du chantier" : "CHF " + estimate + (recurring ? " par mois" : "")}</strong><small>{recurring ? "Pour l’entretien régulier, le montant correspond à un mois selon la fréquence choisie. " : ""}Montant non contractuel, hors fournitures et travaux imprévus. Le prix final est toujours confirmé par un devis Helnet.</small></div>
     <div className="quote-actions"><a className="button whatsapp" href={"https://wa.me/41767748710?text=" + encodeURIComponent(message)} target="_blank" rel="noreferrer">Envoyer sur WhatsApp</a><a className="button email" href={"mailto:contact@helnetservices.ch?subject=" + encodeURIComponent("Demande de devis — " + serviceLabel) + "&body=" + encodeURIComponent(message)}>Envoyer par e-mail</a></div>
     <p className="privacy-note">Vos informations restent dans votre navigateur jusqu’à l’ouverture de WhatsApp ou de votre messagerie. <a href="/confidentialite/">En savoir plus</a>.</p>
     </div>
