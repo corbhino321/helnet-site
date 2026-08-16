@@ -45,7 +45,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
     {children}
     <footer className="site-footer">
       <div className="footer-brand"><Image src="/helnet-logo-official-exact.png" alt="Helnet Services" width={586} height={592} /></div>
-      <div><strong>Helnet Services</strong><p>Basé à Yens · Interventions en Suisse romande</p></div>
+      <div><strong>Helnet Services</strong><p>Basé à Yens · Interventions en Suisse romande</p><p>Horaires : du lundi au vendredi, de 8h30 à 18h</p></div>
       <div className="footer-links"><a href="mailto:contact@helnetservices.ch">contact@helnetservices.ch</a><a href="/confidentialite/">Confidentialité</a><span>© {new Date().getFullYear()} Helnet Services</span></div>
     </footer>
     <nav className="mobile-contact-bar" aria-label="Contact rapide">
