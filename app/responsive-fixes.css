@@ -116,6 +116,12 @@ body {
   line-height: 1.4;
 }
 
+.form-grid .field-help {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .distance-result {
   min-height: 82px;
   display: grid;
