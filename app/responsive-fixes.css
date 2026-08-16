@@ -1,0 +1,38 @@
+body {
+  overflow-x: hidden;
+}
+
+.hero-visual {
+  background-image:
+    linear-gradient(90deg, var(--navy) 0%, rgba(7, 27, 82, 0.18) 48%, rgba(7, 27, 82, 0.05)),
+    url("/helnet-team-cleaning-final-v3.webp");
+}
+
+.contact-section > *,
+.contact-options,
+.contact-options a {
+  min-width: 0;
+}
+
+.contact-options strong,
+.contact-options span {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.estimate-box strong {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 800px) {
+  .hero-visual {
+    background-image:
+      linear-gradient(180deg, var(--navy) 0%, rgba(7, 27, 82, 0.12) 42%, rgba(7, 27, 82, 0.08)),
+      url("/helnet-team-cleaning-final-v3.webp");
+  }
+
+  .contact-section {
+    width: 100%;
+    overflow: hidden;
+  }
+}

@@ -1,0 +1,16 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Confidentialité | Helnet Services", description: "Informations sur l’utilisation des données lorsque vous contactez Helnet Services.", alternates: { canonical: "/confidentialite/" } };
+
+export default function PrivacyPage() {
+  return <main id="contenu" className="legal-page">
+    <p className="eyebrow">INFORMATIONS ET CONFIDENTIALITÉ</p><h1>Vos informations restent sous votre contrôle.</h1>
+    <p>Cette page explique simplement comment les informations sont utilisées lorsque vous contactez Helnet Services depuis ce site.</p>
+    <div className="legal-card"><strong>Responsable du site et du traitement</strong><p>Helnet Services est le nom utilisé pour présenter une activité indépendante en lancement, basée à Yens et active en Suisse romande.<br />E-mail : <a href="mailto:contact@helnetservices.ch">contact@helnetservices.ch</a><br />Téléphone : <a href="tel:+41767748710">076 774 87 10</a></p></div>
+    <h2>Ce que le site enregistre</h2><p>Le site ne possède pas de compte client, ne dépose pas de cookie publicitaire et n’enregistre pas directement les informations du formulaire dans une base de données. Les champs restent dans votre navigateur jusqu’à ce que vous décidiez d’ouvrir WhatsApp ou votre logiciel de messagerie.</p>
+    <h2>Lorsque vous contactez Helnet</h2><p>Vous choisissez les informations à transmettre : nom, coordonnées, commune, description du projet, photos et autres précisions utiles. Elles servent uniquement à répondre à votre demande, préparer un devis, organiser une intervention et assurer le suivi de la relation.</p><p>Les informations ne sont pas vendues. Elles sont conservées pendant la durée nécessaire au traitement de la demande, au suivi de la prestation et au respect des obligations administratives ou légales applicables.</p>
+    <h2>WhatsApp, e-mail et hébergement</h2><p>Lorsque vous utilisez WhatsApp ou votre service de messagerie, ces prestataires traitent également les données selon leurs propres conditions. Le site est destiné à être hébergé par GitHub Pages, qui peut traiter des données techniques telles que l’adresse IP à des fins de sécurité et de fonctionnement.</p>
+    <h2>Vos demandes</h2><p>Vous pouvez demander l’accès, la correction ou la suppression des informations vous concernant en écrivant à <a href="mailto:contact@helnetservices.ch">contact@helnetservices.ch</a>. La demande sera traitée dans les limites des obligations légales applicables.</p>
+    <h2>Mise à jour</h2><p>Dernière mise à jour : 16 août 2026. Cette information sera adaptée si de nouveaux outils, formulaires ou services sont ajoutés au site.</p>
+  </main>;
+}
