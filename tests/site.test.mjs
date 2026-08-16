@@ -43,14 +43,14 @@ test("n’affiche aucune numérotation décorative", () => {
   assert.doesNotMatch(home, /(?:01|02|03|04)\s*·/);
 });
 
-test("place les options de haute pression dans le bon ordre", () => {
+test("regroupe la surface et la complexité avant les traitements sur petit écran", () => {
   const surface = quoteAssistant.indexOf("Surface approximative");
   const antiMoss = quoteAssistant.indexOf("Traitement anti-mousse — supplément de 4 CHF/m²");
-  const condition = quoteAssistant.indexOf("<label><span>État / complexité</span>");
+  const condition = quoteAssistant.indexOf("<label className={pressureCleaning ? \"pressure-condition\" : undefined}><span>État / complexité</span>");
   const waterRepellent = quoteAssistant.indexOf("Protection hydrofuge — supplément de 8 CHF/m²");
 
-  assert.ok(surface < antiMoss);
-  assert.ok(antiMoss < condition);
+  assert.ok(surface < condition);
+  assert.ok(condition < antiMoss);
   assert.ok(condition < waterRepellent);
 });
 

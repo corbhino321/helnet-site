@@ -116,6 +116,16 @@ body {
   line-height: 1.4;
 }
 
+.pressure-anti-moss {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.pressure-condition {
+  grid-column: 2;
+  grid-row: 2;
+}
+
 .form-grid .field-help {
   color: var(--muted);
   font-size: 11px;
@@ -305,6 +315,12 @@ body {
 }
 
 @media (max-width: 800px) {
+  .pressure-anti-moss,
+  .pressure-condition {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
   .mobile-menu {
     margin-left: auto;
   }
